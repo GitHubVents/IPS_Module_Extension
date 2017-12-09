@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace AddFeatureContextMenu
 {
-    public class Class1
+    interface IOperatingWithContextMenu
     {
+        void Test();
     }
 }
