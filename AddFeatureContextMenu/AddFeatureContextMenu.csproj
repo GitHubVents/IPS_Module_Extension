@@ -54,6 +54,10 @@
     <Reference Include="Intermech.Interfaces.Client">
       <HintPath>C:\Program Files\IPS\Client\Intermech.Interfaces.Client.dll</HintPath>
     </Reference>
+    <Reference Include="Intermech.Interfaces.Imbase, Version=4.1.3.1216, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files\IPS\Client\Intermech.Interfaces.Imbase.dll</HintPath>
+    </Reference>
     <Reference Include="Intermech.Navigator">
       <HintPath>C:\Program Files\IPS\Client\Plugins\Intermech.Navigator.dll</HintPath>
     </Reference>
