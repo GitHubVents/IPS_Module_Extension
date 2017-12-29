@@ -4,10 +4,6 @@ using Intermech.Interfaces;
 using Intermech.Navigator.ContextMenu;
 using Intermech.Navigator.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AddFeatureContextMenu
 {
@@ -115,5 +111,4 @@ namespace AddFeatureContextMenu
 
         #endregion
     }
-
 }

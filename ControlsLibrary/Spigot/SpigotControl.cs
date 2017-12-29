@@ -1,8 +1,6 @@
-﻿using PDMWebService.Data.Solid.ElementsCase;
-using System;
+﻿using System;
 using System.Windows.Forms;
-//using PDMWebService.Data.Solid.ElementsCase;
-
+using PDMWebService.Data.Solid.ElementsCase;
 
 namespace Vents_PLM.Spigot
 {
@@ -11,21 +9,17 @@ namespace Vents_PLM.Spigot
         double width, height;
         int spigotType;
 
-         
         public SpigotControl()
         {
             InitializeComponent();
         }
 
-        private void btnBuildSpigot_Click(object sender, EventArgs e)
+        public void Build(object sender, EventArgs e)
         {
-           SpigotBuilder spigot = new SpigotBuilder();
-
+            SpigotBuilder spigot = new SpigotBuilder();
             if (ConvertValues())
             {
-                //this.btnBuildSpigot.Click += spigot.CheckExistPart;
-
-                spigot.Build(spigotType, new SolidWorksLibrary.Builders.ElementsCase.Vector2(width, height));
+                spigot.Build(spigotType, new SolidWorksLibrary.Builders.ElementsCase.Vector2(width, height));// метод из библиотеки SolidWorksLibrary
             }
         }
 
@@ -33,19 +27,6 @@ namespace Vents_PLM.Spigot
         {            
             spigotType = Convert.ToInt32(comboBoxSpigotType.SelectedItem);
         }
-
-        //private void InitializeComponent()
-        //{
-        //    this.SuspendLayout();
-        //    // 
-        //    // SpigotControl
-        //    // 
-        //    this.Name = "SpigotControl";
-        //    this.Size = new System.Drawing.Size(627, 472);
-        //    this.ResumeLayout(false);
-
-        //}
-
         private bool ConvertValues()
         {
             try

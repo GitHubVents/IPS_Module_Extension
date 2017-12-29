@@ -79,7 +79,7 @@
             this.btnBuildSpigot.TabIndex = 4;
             this.btnBuildSpigot.Text = "Построить";
             this.btnBuildSpigot.UseVisualStyleBackColor = true;
-            this.btnBuildSpigot.Click += new System.EventHandler(this.btnBuildSpigot_Click);
+            this.btnBuildSpigot.Click += new System.EventHandler(this.Build);
             // 
             // SpigotControl
             // 
