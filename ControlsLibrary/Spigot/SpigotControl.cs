@@ -16,7 +16,7 @@ namespace Vents_PLM.Spigot
 
         public void Build(object sender, EventArgs e)
         {
-            SpigotBuilder spigot = new SpigotBuilder();
+            SpigotBuilder spigot = new SpigotBuilder(1);///////////////////////////////////////////////////////////// id session
             if (ConvertValues())
             {
                 spigot.Build(spigotType, new SolidWorksLibrary.Builders.ElementsCase.Vector2(width, height));// метод из библиотеки SolidWorksLibrary

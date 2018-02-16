@@ -26,7 +26,7 @@ namespace AddFeatureContextMenu
         DataTable tb1 = null;//таблица IMBASE с данными
         Dictionary<string, string> dictionary;//наименования колонок таблицы IMBASE и их значения
 
-        AddionalFunctional exel = new AddionalFunctional();
+        
         UserControl user;
         internal static IServiceProvider _serviceProvider;
 
@@ -62,7 +62,7 @@ namespace AddFeatureContextMenu
             // Получаем ссылку на управление содержимым докинга
             Intermech.Docking.IContentProvider provider = ServicesManager.GetService(typeof(Intermech.Docking.IContentProvider)) as Intermech.Docking.IContentProvider;
             // Подписываемся на событие "Восстановить окно"
-            provider.ContentCallback += new Intermech.Docking.GetContentCallback(WellKnownDockWindow.RestoreWindowCallback);
+           // provider.ContentCallback += new Intermech.Docking.GetContentCallback(WellKnownDockWindow.RestoreWindowCallback);
 
 
             // Получаем ссылку на сервис именованных значков
@@ -80,10 +80,10 @@ namespace AddFeatureContextMenu
                 // Панель найдена
                 if (pane != null)
                 {
-                    pane.Add("AAAAAAAAAAAAAAAAAAAAAAAAAAAH",
+                    /*pane.Add("AAAAAAAAAAAAAAAAAAAAAAAAAAAH",
                         new EventHandler(WellKnownDockWindow.ShowWellKnownDockWindow),
                         _images.ImageIndex(WellKnownDockWindow.WindowImageName));
-
+                        */
                     //получаем обьект главного меню
                     BarManager barManager = _serviceProvider.GetService(typeof(BarManager)) as BarManager;
                     //добавляем в него новый Item - AirVentsCAD
@@ -92,7 +92,7 @@ namespace AddFeatureContextMenu
                     //создаем пункты подменю
                     airVentsMenuItem.Items.Add("Spigot", Spigot_EventBuilder);
                     airVentsMenuItem.Items.Add("Roof", Roof_EventBuilder);
-                    airVentsMenuItem.Items.Add("Добавить электронный документ", AddDoc_EventBuilder);
+                    airVentsMenuItem.Items.Add("Добавить записи в таблицу", AddDoc_EventBuilder);
                 }
             }
         }
@@ -124,7 +124,8 @@ namespace AddFeatureContextMenu
         }
         private void AddDoc_EventBuilder(object sender, EventArgs e)
         {
-            exel.MainMethodForFillingImbaseTable("Скотч", 39);
+            ExcelForm exel = new ExcelForm();
+            exel.Show();
         }
 
 
