@@ -8,18 +8,21 @@ namespace Vents_PLM.Spigot
     {
         double width, height;
         int spigotType;
+        long SessionID = 0;
 
-        public SpigotControl()
+        public SpigotControl(long sessionId)
         {
             InitializeComponent();
+            SessionID = sessionId;
         }
 
         public void Build(object sender, EventArgs e)
         {
-            SpigotBuilder spigot = new SpigotBuilder(1);///////////////////////////////////////////////////////////// id session
+
+            SpigotBuilder spigot = new SpigotBuilder(4);///////////////////////////////////////////////////////////// id session
             if (ConvertValues())
             {
-                spigot.Build(spigotType, new SolidWorksLibrary.Builders.ElementsCase.Vector2(width, height));// метод из библиотеки SolidWorksLibrary
+                //spigot.Build(spigotType, new SolidWorksLibrary.Builders.ElementsCase.Vector2(width, height));// метод из библиотеки SolidWorksLibrary
             }
         }
 

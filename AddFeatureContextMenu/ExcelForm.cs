@@ -21,18 +21,14 @@ namespace AddFeatureContextMenu
         {
             InitializeComponent();
         }
+        IPS_ExcelOperations ips = new IPS_ExcelOperations();
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (pathToFile != string.Empty && pathToFile != null)
-            {
-                ExcelFunctionality obj = new ExcelFunctionality(pathToFile); // вызвали конструктор класса, инициализация поля filePath
-                obj.MainMethodForFillingImbaseTable();
+            ExcelFunctionality obj = new ExcelFunctionality(pathToFile); // вызвали конструктор класса, инициализация поля filePath
 
-                MessageBox.Show("Success!");
-            }
-            
-            //dataGridExcel.DataSource = ExcelFunctionality.GetTotalSheetsData().Tables[count];
+            DataSet ds = ExcelFunctionality.GetTotalSheetsData();
+            ips.MainMethodForFillingImbaseTable(ds);
         }
 
 
@@ -69,6 +65,15 @@ namespace AddFeatureContextMenu
         private void button2_Click(object sender, EventArgs e)
         {
             pathToFile = GetExcelPath();
+        }
+
+        private void IMBASE_3ViewBtn_Click(object sender, EventArgs e)
+        {
+
+            //List<ImbaseTableList> similarTables = new List<ImbaseTableList>() { new ImbaseTableList(12, "First"), new ImbaseTableList(44, "Second") };
+            //int idNewType = ips.CreateTemporarType(similarTables);
+            //  MessageBox.Show("idNewType  " + idNewType.ToString());
+            ips.ShowContextForm(1007);
         }
     }
 }
