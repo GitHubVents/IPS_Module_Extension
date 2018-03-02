@@ -12,8 +12,9 @@ using System.Windows.Forms;
 using System.Data;
 using System.Collections.Generic;
 using Intermech.Imbase;
-using Vents_PLM.Spigot;
 using System.Linq;
+using ControlsLibrary.MountingFrame;
+using ControlsLibrary.Spigot;
 
 namespace AddFeatureContextMenu
 {
@@ -36,13 +37,24 @@ namespace AddFeatureContextMenu
                 return keeper;
             }
         }
-       
+        private long sessionID;
+        public long SessionID
+        {
+            get
+            {
+                if (sessionID == 0)
+                {
+                    sessionID = Session.SessionID;
+                }
+                return sessionID;
+            }
+        }
+
+
         UserControl userControl;
-
-
+        Dictionary<string, IDBObject> createdDocs = new Dictionary<string, IDBObject>();
 
         delegate void DependsFLAG(ref IDBObject _object,  MyStruct myStruct);
-        Operations_with_IPS op = new Operations_with_IPS();
         DependsFLAG dependsFlag;
 
 
@@ -95,6 +107,7 @@ namespace AddFeatureContextMenu
             //создаем пункты подменю
             airVentsMenuItem.Items.Add("Spigot", Spigot_EventBuilder);
             airVentsMenuItem.Items.Add("Roof", Roof_EventBuilder);
+            airVentsMenuItem.Items.Add("Mounting frame", Frame_EventBuilder);
             airVentsMenuItem.Items.Add("Добавить записи в таблицу", AddDoc_EventBuilder);
 
             // Ищем панель "Приложения"
@@ -122,7 +135,7 @@ namespace AddFeatureContextMenu
             form.Location = new System.Drawing.Point(500, 300);
             form.Controls.Add(userControl);
             userControl.Show();
-            form.Show();
+            form.ShowDialog();
         }
         private void Roof_EventBuilder(object sender, EventArgs e)
         {
@@ -136,14 +149,29 @@ namespace AddFeatureContextMenu
             userControl.Show();
             form.Show();
         }
+
+        private void Frame_EventBuilder(object sender, EventArgs e)
+        {
+            userControl = new MountingFrame();
+            userControl.Dock = DockStyle.Fill;
+
+            Form form = new Form();
+            form.Size = new System.Drawing.Size(600, 500);
+            form.Location = new System.Drawing.Point(500, 300);
+            form.Controls.Add(userControl);
+            userControl.Show();
+            form.Show();
+        }
+
         private void AddDoc_EventBuilder(object sender, EventArgs e)
         {
             //Test();
-            //ExcelForm exel = new ExcelForm();
-            //exel.Show();
+            ExcelForm exel = new ExcelForm();
+            exel.Show();
+
+            //InvokeMyDelegats(Test());
+            //WriteIntoIPS(Test());
         }
-
-
         //private void ReadBlob()
         //{
         //    using (SessionKeeper sk = new SessionKeeper())
@@ -190,6 +218,7 @@ namespace AddFeatureContextMenu
 
         public DataTable GetIMBASETable(long tableID, out DataSet ds, out Dictionary<string, string> dictionary)
         {
+            
             using (SessionKeeper keeper = new SessionKeeper())
             {
                 ds = TableLoadHelper.GetTables(keeper.Session, tableID, true);
@@ -231,46 +260,21 @@ namespace AddFeatureContextMenu
         }
 
         
-        public void MakeRelationsBtwnDocs(List<long> children, long parentID)
+        public void MakeRelationsBtwnDocs(Dictionary<string, IDBObject> children, IDBObject parent)
         {
             IDBRelationCollection coll = Session.GetRelationCollection(1014);
-
-            IDBObject objectParent = Session.GetObject(parentID);
-            IDBObject objectParentChecked = objectParent.CheckOut(true); //  asm
-
-
-            IDBObject newChild;
+            
+            IDBObject objectParentChecked = parent.CheckOut(true); //  asm
             IDBObject newChildChecked;
 
-            foreach (var childID in children)
+            foreach (var child in children)
             {
-                newChild = Session.GetObject(childID);
-                newChildChecked = newChild.CheckOut(true); //  prt
 
+                newChildChecked = child.Value.CheckOut(true); //  prt
                 IDBRelation relation = coll.Create(objectParentChecked.ObjectID, newChildChecked.ObjectID); // создаем связь между изделием и документом
-                
-                MessageBox.Show(relation.CreateDate.DayOfWeek.ToString());
             }
         }
 
-        //public void Test()
-        //{
-        //    string pathPart = @"C:\Users\kb81\Desktop\Новая папка\1850-0051.01.012 - Вставка 1.sldprt";
-        //    string pathASM = @"C:\Users\kb81\Desktop\Новая папка\1850-0051.01.002-02 - Корпус сонотрода (второй ремонт).SLDASM";
-
-
-        //    var a = GetIMBASETable((int)ImbaseTableID.Spigot, out ds, out dictionary);
-
-        //    WriteIntoIMBASE_Spigot_Table(a, pathPart, "part", "name", "789", "987", "20", 1); // prt
-        //    WriteIntoIMBASE_Spigot_Table(a, pathASM, "asm", "name", "789", "987", "20", 0); //asm
-
-
-        //   // MakeRelationsBtwnDocs(new List<long> { idpart }, idparent);
-        //}
-        
-
-
-        //перенести в ServiceConstants
         private enum ImbaseTableID :long
         {
             Spigot = 1746785,
@@ -302,15 +306,22 @@ namespace AddFeatureContextMenu
         /// <param name="_object"></param>
         private void CreatDoc(ref IDBObject DocObj, MyStruct _object)
         {
+            DocObj = null;
             IDBObjectCollection coll = Session.GetObjectCollection((int)_object.IPsDocType);
             DocObj = coll.Create((int)_object.IPsDocType);
-
+            
             // добавление создаваемого обьекта в Документы/Конструкторские/Электронные модели
             IDBAttribute atrName = DocObj.Attributes.FindByGUID(new Guid(SystemGUIDs.attributeName));//наименование документа
             IDBAttribute atrDesignation = DocObj.Attributes.FindByGUID(new Guid(SystemGUIDs.attributeDesignation));//обозначение документа
 
             atrName.Value = _object.Name;
             atrDesignation.Value = _object.Designition;
+
+            var res = createdDocs.Where(x => x.Key.Equals(_object.Designition)).ToList();
+            if(res.Count == 0)
+            {
+                createdDocs.Add(_object.Designition, DocObj);
+            }
         }
 
         /// <summary>
@@ -320,32 +331,33 @@ namespace AddFeatureContextMenu
         /// <param name="filePath"></param>
         private void Blob(ref IDBObject DocObj, MyStruct _object)
         {
-            if (DocObj == null)// пишем не в новый документ, а в сборку
+            if (_object.Flag == 5)// пишем Blob не в новый документ, а в сборку
             {
-                BlobIntoASM(ref DocObj, _object);
+                DocObj = createdDocs.Where(x => x.Key.Equals(_object.RefAsmName)).Select(y=>y.Value).First();
             }
-
+            
             int attrFile = MetaDataHelper.GetAttributeTypeID(new Guid(SystemGUIDs.attributeFile));// атрибут "Файл"
             IDBAttribute fileAtr = DocObj.GetAttributeByID(attrFile);
 
+            if (fileAtr.Values.Count() >= 1)
+            {
+                fileAtr.AddValue(_object.Path);
+            }
             using (var ms = new MemoryStream(File.ReadAllBytes(_object.Path)))
             {
                 BlobInformation blInfo = new BlobInformation(0, 0, DateTime.Now, _object.Path, ArcMethods.NotPacked, null);
                 BlobProcWriter writer = new BlobProcWriter(fileAtr, (int)AttributableElements.Object, blInfo, ms, null, null);
+
                 writer.WriteData();
             }
         }
 
-        private void BlobIntoASM(ref IDBObject DocObj, MyStruct _object)
-        {
-            /////////////// DocObj - обьект сборки
-        }
 
         /// <summary>
         /// Создает изделие
         /// </summary>
         /// <param name="productType"></param>
-        /// <param name="parentID">ID документа на который создаеться изделие</param>
+        /// <param name="parentID">ID документа на который создаеться изделие</param>//prt
         private void CreateProduct(ref IDBObject DocObj, MyStruct _object)
         {
             IDBObjectCollection coll = Session.GetObjectCollection((int)_object.IPsProductType);
@@ -364,27 +376,28 @@ namespace AddFeatureContextMenu
             IDBRelationCollection colRel = Session.GetRelationCollection(1004);
             IDBRelation relation = colRel.Create(newObjChecked.ObjectID, DocObj.ID); // создаем связь между изделием и докумиентом, 
             if (relation == null) { MessageBox.Show("Failed create the relation of type " + colRel.RelationTypeID.ToString()); }
-
-            //newObjChecked.CheckIn();//
         }
+        
 
 
         private DependsFLAG DependsOnFLAG(int flag)
         {
+            dependsFlag = null;
+            
             switch (flag)
             {
                 case 0:
-
-                    dependsFlag = op.CreatDoc;
-                    dependsFlag += op.Blob;
-                    dependsFlag += op.CreateProduct;
-
+                    dependsFlag += CreatDoc;
+                    dependsFlag += Blob;
+                    dependsFlag += CreateProduct;
                     break;
                 case 1:
-
+                    dependsFlag += Blob;
+                    dependsFlag += CreateProduct;
                     break;
                 case 2:
-
+                    dependsFlag = CreatDoc;
+                    dependsFlag += Blob;//prt
                     break;
                 case 3:
 
@@ -393,8 +406,7 @@ namespace AddFeatureContextMenu
 
                     break;
                 case 5:
-                    dependsFlag += op.Blob;
-                    dependsFlag += op.CreateProduct;
+                    dependsFlag += Blob;//asm
                     break;
             }
             return dependsFlag;
@@ -403,30 +415,55 @@ namespace AddFeatureContextMenu
         //вызывать после построения модели в библиотеке SolidWorksLibrary
         public void InvokeMyDelegats(List<MyStruct> objectsToWrite)
         {
+            string mainASMDesignition = objectsToWrite.Where(x => x.RefAsmName.Equals(String.Empty)).Select(x => x.Designition).First();
 
-            string mainASMName = objectsToWrite.Where(x => x.RefAsmName.Equals(String.Empty)).Select(x => x.Name).First();
+            BuildTreeView(objectsToWrite, mainASMDesignition, objectsToWrite);
 
-            BuildTreeView(objectsToWrite, mainASMName);
+            foreach (var item in createdDocs)
+            {
+                item.Value.CommitCreation(true);
+            }
         }
 
-        private void BuildTreeView(List<MyStruct> objectsToWrite, string name)
+
+        //asmDesignition - имя сборки находящейся на одном уровне с objectsOfTheSameLevel
+        private void BuildTreeView(List<MyStruct> allObjects, string asmDesignition, List<MyStruct> objectsOfTheSameLevel)
         {
+            MyStruct asm;
+            Predicate<MyStruct> getAsm = delegate (MyStruct t) { return t.Designition == asmDesignition; };
+            Predicate<MyStruct> getHigherReferencedAsm = delegate (MyStruct t) { return t.RefAsmName == asmDesignition; };
 
-            //cписок деталей/чертежей/сборок, которые ссылаються на name (имя сборки более высокого уровня)
-            List<MyStruct> list = objectsToWrite.Where(
-                                                        x =>
-                                                        (x.RefAsmName == name)// && x.IPsDocType.Equals(IPSObjectTypes.DocSldAssembly))
-                                                      ).ToList();
+            //cписок деталей/чертежей/сборок нижнего уровня, которые ссылаються на name (имя сборки более высокого уровня)
+            List<MyStruct> list = allObjects.FindAll(getHigherReferencedAsm);
+            
+            // сборки которые есть на нижнем уровне
+            List<MyStruct> subList = list?.Where(x => x.IPsDocType.Equals(IPSObjectTypes.DocSldAssembly)).ToList();
 
-            if (list.Count == 0)
+            
+            if (list.Count == 0) // в list только одна сборка, на которую не ссылаються другие обьекты, сборка нижнего уровня
             {
-                op.WriteIntoIPS(objectsToWrite);
+                asm = allObjects.Find(getAsm);
+                WriteIntoIPS(new List<MyStruct> { asm }); // записали сборку
+                //связь со сборкой высшего уровня???
+            }
+            
+            if (subList.Count == 0)//если сборок нет, заливаем в IPS
+            {
+                asm = objectsOfTheSameLevel.Find(getAsm);
+
+                IDBObject obj = null;
+                CreatDoc(ref obj, asm); // создали документ сборки
+
+                list.Remove(asm);
+                WriteIntoIPS(list); // а теперь обьекты, которые на нее ссылаються
+
+                MakeRelationsBtwnDocs(createdDocs, createdDocs.Where(x=>x.Key.Equals(asm.Designition)).First().Value);
             }
             else
             {
-                foreach (var item in list.Where(x=>x.RefAsmName.Equals(IPSObjectTypes.DocSldAssembly)))
+                foreach (var item in subList)
                 {
-                    BuildTreeView(objectsToWrite, item.Name);
+                    BuildTreeView(allObjects, item.Designition, list);
                 }
             }
         }
@@ -437,8 +474,26 @@ namespace AddFeatureContextMenu
             foreach (var item in objectsToWrite)
             {
                 dependsFlag = DependsOnFLAG(item.Flag);
-                dependsFlag(ref obj, item);
+                dependsFlag?.Invoke(ref obj, item);
             }
+        }
+
+        private List<MyStruct> Test()
+        {
+            List<MyStruct> structura = new List<MyStruct>();
+            MyStruct newS = new MyStruct(5,  "Design", "12-03-837-914", @"D:\IPS Vault\4\Workspace\Проекты\Blauberg\12 - Вибровставка\12-03-837-914.SLDPRT", "12-20-837-914", IPSObjectTypes.DocSldPart, IPSObjectTypes.ProductPart);
+            structura.Add(newS);
+           
+            newS = new MyStruct(0, "Design","12-03-837",  @"D:\IPS Vault\4\Workspace\Проекты\Blauberg\12 - Вибровставка\12-20-837.SLDPRT", "12-20-837-914", IPSObjectTypes.DocSldPart, IPSObjectTypes.ProductPart);
+            structura.Add(newS);
+
+            newS = new MyStruct(0, "Design", "12-20-914", @"D:\IPS Vault\4\Workspace\Проекты\Blauberg\12 - Вибровставка\12-20-914.SLDPRT", "12-20-837-914", IPSObjectTypes.DocSldPart, IPSObjectTypes.ProductPart);
+            structura.Add(newS);
+         
+            newS = new MyStruct(0, "ASM", "12-20-837-914", @"D:\IPS Vault\4\Workspace\Проекты\Blauberg\12 - Вибровставка\12-20-837-914.SLDASM", String.Empty, IPSObjectTypes.DocSldAssembly, IPSObjectTypes.ProductASM);
+            structura.Add(newS);
+
+            return structura;
         }
     }
 }

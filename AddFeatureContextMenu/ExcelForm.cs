@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AddFeatureContextMenu
@@ -13,9 +7,6 @@ namespace AddFeatureContextMenu
     public partial class ExcelForm : Form
     {
         string pathToFile;
-        string name;
-        int count = 0;
-        bool wholeFile = false;
         
         public ExcelForm()
         {
@@ -28,25 +19,9 @@ namespace AddFeatureContextMenu
             ExcelFunctionality obj = new ExcelFunctionality(pathToFile); // вызвали конструктор класса, инициализация поля filePath
 
             DataSet ds = ExcelFunctionality.GetTotalSheetsData();
+
             ips.MainMethodForFillingImbaseTable(ds);
         }
-
-
-        private void ConvertValues()
-        {
-            try
-            {
-                //name = textName.Text;
-                count = Convert.ToInt32( textCount.Text);
-                wholeFile = checkBox1.Checked;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Введены недопустимые значения");
-                throw ex;
-            }
-        }
-
 
         private string GetExcelPath()
         {
@@ -69,11 +44,12 @@ namespace AddFeatureContextMenu
 
         private void IMBASE_3ViewBtn_Click(object sender, EventArgs e)
         {
-
             //List<ImbaseTableList> similarTables = new List<ImbaseTableList>() { new ImbaseTableList(12, "First"), new ImbaseTableList(44, "Second") };
-            //int idNewType = ips.CreateTemporarType(similarTables);
-            //  MessageBox.Show("idNewType  " + idNewType.ToString());
-            ips.ShowContextForm(1007);
+            //ips.ShowContextForm(1007);
+            IPS_ExcelOperations pp = new IPS_ExcelOperations();
+            pp.ShowContextForm(1053);
+
+            pp.GetTags();
         }
     }
 }

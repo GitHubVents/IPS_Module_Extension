@@ -2,7 +2,7 @@
 using System.Windows.Forms;
 using PDMWebService.Data.Solid.ElementsCase;
 
-namespace Vents_PLM.Spigot
+namespace ControlsLibrary.Spigot
 {
     public partial class SpigotControl : UserControl
     {
@@ -19,10 +19,10 @@ namespace Vents_PLM.Spigot
         public void Build(object sender, EventArgs e)
         {
 
-            SpigotBuilder spigot = new SpigotBuilder(4);///////////////////////////////////////////////////////////// id session
+            SpigotBuilder spigot = new SpigotBuilder();///////////////////////////////////////////////////////////// id session
             if (ConvertValues())
             {
-                //spigot.Build(spigotType, new SolidWorksLibrary.Builders.ElementsCase.Vector2(width, height));// метод из библиотеки SolidWorksLibrary
+                spigot.Build(spigotType, new SolidWorksLibrary.Builders.ElementsCase.Vector2(width, height));// метод из библиотеки SolidWorksLibrary
             }
         }
 

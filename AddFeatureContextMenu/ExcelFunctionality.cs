@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using System.Data.OleDb;
 using System.Windows.Forms;
 
@@ -23,7 +24,6 @@ namespace AddFeatureContextMenu
                 if (exCon == null)
                 {
                     exCon = MakeConnection(pathToLocalFile);
-                    MessageBox.Show("First read");
                 }
                 return exCon;
             }
@@ -69,12 +69,29 @@ namespace AddFeatureContextMenu
             }
             return excelSheets;
         }
-        public static DataTable GetDataFromExcel(string sheet)
+        public static DataTable GetDataFromExcel(string sheetName)
         {
-            string command = "SELECT * FROM " + "[" + sheet + "]";
-
+            string command = "SELECT * FROM " + "[" + sheetName + "]";
             DataTable dt = new DataTable();
-            dt.TableName = sheet.Replace("$", ""); // имя таблицы совпадает с именем листа
+
+            string tempName = sheetName.Replace("$", string.Empty); // имя таблицы совпадает с именем листа
+
+
+            //проверка являеться ли первый/ последний символ имени листа буквой
+            Char[] eachSymb = tempName.ToCharArray();
+            Char firstLetter = eachSymb[0];
+            Char lastLetter = eachSymb[eachSymb.Length - 1];
+            if (!Char.IsLetter(firstLetter) && !Char.IsNumber(firstLetter))
+            {
+                tempName = tempName.Remove(0, 1);
+            }
+            if (!Char.IsLetter(lastLetter) && !Char.IsNumber(lastLetter))
+            {
+                tempName = tempName.Remove(tempName.Length - 1);
+            }
+
+            dt.TableName = tempName;
+
 
             using (OleDbCommand comm = new OleDbCommand())
             {

@@ -1,4 +1,4 @@
-﻿namespace Vents_PLM.Spigot
+﻿namespace ControlsLibrary.Spigot
 {
     partial class SpigotControl
     {
